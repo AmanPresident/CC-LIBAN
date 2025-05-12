@@ -1,0 +1,18 @@
+﻿
+<head>
+   
+    <title>@ViewData["Title"] CC-LIBAN</title>
+   
+</head>
+<body>
+  
+    <div >
+        
+            @RenderBody()
+        
+    </div>
+
+    
+   
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
