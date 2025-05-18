@@ -15,10 +15,9 @@ namespace test7.Data
         public DbSet<Models.User> Users { get; set; }
         public DbSet<Models.Cart> Cart { get; set; }
         public DbSet<Models.CartItem> CartItem { get; set; }
-<<<<<<< HEAD
+
         public DbSet<Models.Categorie> Categorie { get; set; }
-=======
->>>>>>> 9c21152ef3d47e1699b001f031c199b4a35905fa
+
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
