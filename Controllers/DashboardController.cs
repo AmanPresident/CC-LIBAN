@@ -30,7 +30,7 @@ namespace test7.Controllers
         {
             // Récupérer toutes les catégories et les passer à la vue
             var categories = _context.Categorie.ToList();
-            ViewBag.Categories = categories; // Ou vous pouvez utiliser un ViewModel
+            ViewBag.Categories = categories; 
             return View();
         }
 
