@@ -1,0 +1,185 @@
+﻿@model IEnumerable<test7.Models.Order>
+
+@{
+    ViewData["Title"] = "Gestion des Commandes";
+    
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Liste des Commandes</h3>
+
+                    <!-- Filtres et recherche -->
+                    <div class="card-tools">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <input type="text" id="searchInput" class="form-control" placeholder="Rechercher par numéro, client, adresse...">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-outline-secondary" type="button" onclick="rechercherCommandes()">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <select id="statusFilter" class="form-control" onchange="rechercherCommandes()">
+                                    <option value="">Tous les statuts</option>
+                                    <option value="0">En attente</option>
+                                    <option value="1">Payé</option>
+                                    <option value="2">Validé</option>
+                                    <option value="3">Expédié</option>
+                                    <option value="4">Livré</option>
+                                    <option value="5">Annulé</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            @TempData["SuccessMessage"]
+                            <button type="button" class="close" data-dismiss="alert">
+                                <span>&times;</span>
+                            </button>
+                        </div>
+                    }
+
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            @TempData["ErrorMessage"]
+                            <button type="button" class="close" data-dismiss="alert">
+                                <span>&times;</span>
+                            </button>
+                        </div>
+                    }
+
+                    <div id="commandesTable">
+                        @await Html.PartialAsync("_CommandesTablePartial", Model)
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmation pour les actions -->
+<div class="modal fade" id="confirmModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmation</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage"></p>
+                <div id="motifSection" style="display: none;">
+                    <label for="motifAnnulation">Motif d'annulation :</label>
+                    <textarea id="motifAnnulation" class="form-control" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" id="confirmButton">Confirmer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function rechercherCommandes() {
+        const searchTerm = document.getElementById('searchInput').value;
+        const status = document.getElementById('statusFilter').value;
+
+        fetch(`/Dashboard/RechercherCommandes?searchTerm=${encodeURIComponent(searchTerm)}&status=${status}`)
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('commandesTable').innerHTML = html;
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+            });
+    }
+
+    function confirmerAction(action, id, orderNumber, message) {
+        document.getElementById('confirmMessage').innerText = message;
+
+        // Afficher le champ motif seulement pour l'annulation
+        if (action === 'annuler') {
+            document.getElementById('motifSection').style.display = 'block';
+        } else {
+            document.getElementById('motifSection').style.display = 'none';
+        }
+
+        document.getElementById('confirmButton').onclick = function() {
+            executeAction(action, id);
+        };
+
+        $('#confirmModal').modal('show');
+    }
+
+    function executeAction(action, id) {
+        let formData = new FormData();
+        formData.append('id', id);
+
+        if (action === 'annuler') {
+            const motif = document.getElementById('motifAnnulation').value;
+            formData.append('motif', motif);
+        }
+
+        let actionUrl = '';
+        switch(action) {
+            case 'confirmer':
+                actionUrl = '/Dashboard/ConfirmerPaiement';
+                break;
+            case 'valider':
+                actionUrl = '/Dashboard/ValiderCommande';
+                break;
+            case 'expedier':
+                actionUrl = '/Dashboard/MarquerExpediee';
+                break;
+            case 'annuler':
+                actionUrl = '/Dashboard/AnnulerCommande';
+                break;
+        }
+
+        fetch(actionUrl, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Erreur lors de l\'exécution de l\'action');
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            alert('Erreur lors de l\'exécution de l\'action');
+        });
+
+        $('#confirmModal').modal('hide');
+    }
+
+    // Recherche en temps réel
+    document.getElementById('searchInput').addEventListener('keyup', function(e) {
+        if (e.key === 'Enter') {
+            rechercherCommandes();
+        }
+    });
+</script>
+
+@Html.AntiForgeryToken()

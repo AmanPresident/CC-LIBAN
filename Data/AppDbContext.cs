@@ -17,6 +17,11 @@ namespace test7.Data
         public DbSet<Models.CartItem> CartItem { get; set; }
 
         public DbSet<Models.Categorie> Categorie { get; set; }
+        public DbSet<Models.Profile> Profile { get; set; }
+        public DbSet<Models.Order> Order { get; set; }
+        public DbSet<Models.OrderItem> OrderItem { get; set; }
+        public DbSet<Models.ProductLike> ProductLike { get; set; }
+        public DbSet<Models.ProductRating> ProductRating { get; set; }
 
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

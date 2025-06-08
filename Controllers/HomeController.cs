@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -31,6 +32,25 @@ namespace test7.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return RedirectToAction("SignIn", "Account");
+            }
+
+            // Récupérer les informations de l'utilisateur
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == int.Parse(userId));
+            if (user == null)
+            {
+                return RedirectToAction("SignIn", "Account");
+            }
+
+            
+
+            // Passer les informations utilisateur à la vue
+            ViewBag.UserName = !string.IsNullOrEmpty(user.FullName) ? user.FullName : user.Username;
+            ViewBag.UserRole = user.Statut;
+            ViewBag.ProfileImage = !string.IsNullOrEmpty(user.ProfileImage) ? user.ProfileImage : "/Dashboard/img/user.jpg";
             var produits = await _context.Produits
                 .Include(p => p.Categorie)  // Ceci charge les données de catégorie associées
                 .ToListAsync();

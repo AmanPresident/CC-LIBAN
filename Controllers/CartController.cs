@@ -22,20 +22,35 @@ namespace test7.Controllers
 
         public async Task<IActionResult> Index()
         {
-            // Récupère l'ID de l'utilisateur depuis les claims
-            //var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return RedirectToAction("SignIn", "Account");
+            }
 
-            // Si votre User utilise un int comme ID
-             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            // Récupérer les informations de l'utilisateur
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == int.Parse(userId));
+            if (user == null)
+            {
+                return RedirectToAction("SignIn", "Account");
+            }
+
+
+
+            // Passer les informations utilisateur à la vue
+            ViewBag.UserName = !string.IsNullOrEmpty(user.FullName) ? user.FullName : user.Username;
+            ViewBag.UserRole = user.Statut;
+            ViewBag.ProfileImage = !string.IsNullOrEmpty(user.ProfileImage) ? user.ProfileImage : "/Dashboard/img/user.jpg";
+            
 
             var cart = await _context.Cart
                 .Include(c => c.Items)
                 .ThenInclude(i => i.Product)
-                .FirstOrDefaultAsync(c => c.UserId == userId);
+                .FirstOrDefaultAsync(c => c.UserId == int.Parse(userId));
 
             if (cart == null)
             {
-                cart = new Cart { UserId = userId };
+                cart = new Cart { UserId = int.Parse(userId) };
                 _context.Cart.Add(cart);
                 await _context.SaveChangesAsync();
             }

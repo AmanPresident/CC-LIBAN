@@ -1,0 +1,386 @@
+﻿@model test7.Models.Order
+
+@{
+    ViewData["Title"] = "Détails de la Commande";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-file-invoice"></i>
+                        Détails de la Commande: @Model.OrderNumber
+                    </h3>
+                    <div class="card-tools">
+                        <a href="@Url.Action("ListeCommandes")" class="btn btn-default btn-sm">
+                            <i class="fas fa-arrow-left"></i> Retour à la liste
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            @TempData["SuccessMessage"]
+                            <button type="button" class="close" data-dismiss="alert">
+                                <span>&times;</span>
+                            </button>
+                        </div>
+                    }
+
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            @TempData["ErrorMessage"]
+                            <button type="button" class="close" data-dismiss="alert">
+                                <span>&times;</span>
+                            </button>
+                        </div>
+                    }
+
+                    <div class="row">
+                        <!-- Informations de la commande -->
+                        <div class="col-md-6">
+                            <div class="card card-outline card-primary">
+                                <div class="card-header">
+                                    <h3 class="card-title">Informations de la Commande</h3>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <td><strong>Numéro:</strong></td>
+                                            <td>@Model.OrderNumber</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Date de commande:</strong></td>
+                                            <td>@Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Statut:</strong></td>
+                                            <td>
+                                                @switch (Model.Status)
+                                                {
+                                                    case test7.Models.OrderStatus.Pending:
+                                                        <span class="badge badge-warning">En attente</span>
+                                                        break;
+                                                    case test7.Models.OrderStatus.Paid:
+                                                        <span class="badge badge-info">Payé</span>
+                                                        break;
+                                                    case test7.Models.OrderStatus.Validated:
+                                                        <span class="badge badge-primary">Validé</span>
+                                                        break;
+                                                    case test7.Models.OrderStatus.Shipped:
+                                                        <span class="badge badge-success">Expédié</span>
+                                                        break;
+                                                    case test7.Models.OrderStatus.Delivered:
+                                                        <span class="badge badge-dark">Livré</span>
+                                                        break;
+                                                    case test7.Models.OrderStatus.Cancelled:
+                                                        <span class="badge badge-danger">Annulé</span>
+                                                        break;
+                                                }
+                                            </td>
+                                        </tr>
+                                        @if (Model.PaymentDate.HasValue)
+                                        {
+                                            <tr>
+                                                <td><strong>Date de paiement:</strong></td>
+                                                <td>@Model.PaymentDate.Value.ToString("dd/MM/yyyy HH:mm")</td>
+                                            </tr>
+                                        }
+                                        @if (Model.ValidationDate.HasValue)
+                                        {
+                                            <tr>
+                                                <td><strong>Date de validation:</strong></td>
+                                                <td>@Model.ValidationDate.Value.ToString("dd/MM/yyyy HH:mm")</td>
+                                            </tr>
+                                        }
+                                        <tr>
+                                            <td><strong>Montant total:</strong></td>
+                                            <td><strong class="text-success">@Model.TotalAmount.ToString("F2") DH</strong></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Informations client -->
+                        <div class="col-md-6">
+                            <div class="card card-outline card-info">
+                                <div class="card-header">
+                                    <h3 class="card-title">Informations Client</h3>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <td><strong>Nom:</strong></td>
+                                            <td>@(!string.IsNullOrEmpty(Model.User?.FullName) ? Model.User.FullName : Model.User?.Username)</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Email:</strong></td>
+                                            <td>@Model.User?.Email</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Téléphone:</strong></td>
+                                            <td>@Model.PhoneNumber</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Adresse de livraison:</strong></td>
+                                            <td>@Model.ShippingAddress</td>
+                                        </tr>
+                                        @if (!string.IsNullOrEmpty(Model.Notes))
+                                        {
+                                            <tr>
+                                                <td><strong>Notes:</strong></td>
+                                                <td>@Model.Notes</td>
+                                            </tr>
+                                        }
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Articles commandés -->
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="card card-outline card-success">
+                                <div class="card-header">
+                                    <h3 class="card-title">Articles Commandés</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>Image</th>
+                                                    <th>Produit</th>
+                                                    <th>Prix unitaire</th>
+                                                    <th>Quantité</th>
+                                                    <th>Total</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var item in Model.OrderItems)
+                                                {
+                                                    <tr>
+                                                        <td>
+                                                            @if (!string.IsNullOrEmpty(item.Product?.UrlImage))
+                                                            {
+                                                                <img src="~/@item.Product.UrlImage" alt="@item.Product.Name"
+                                                                     class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
+                                                            }
+                                                            else
+                                                            {
+                                                                <div class="bg-light d-flex align-items-center justify-content-center"
+                                                                     style="width: 50px; height: 50px;">
+                                                                    <i class="fas fa-image text-muted"></i>
+                                                                </div>
+                                                            }
+                                                        </td>
+                                                        <td>
+                                                            <strong>@item.Product?.Name</strong>
+                                                            @if (!string.IsNullOrEmpty(item.Product?.Description))
+                                                            {
+                                                                <br>
+
+                                                                <small class="text-muted">@item.Product.Description</small>
+                                                            }
+                                                        </td>
+                                                        <td>@item.UnitPrice.ToString("F2") DH</td>
+                                                        <td>
+                                                            <span class="badge badge-primary">@item.Quantity</span>
+                                                        </td>
+                                                        <td><strong>@item.TotalPrice.ToString("F2") DH</strong></td>
+                                                    </tr>
+                                                }
+
+                                                <!-- Récapitulatif -->
+                                                <tr class="bg-light">
+                                                    <td colspan="4" class="text-right"><strong>Sous-total:</strong></td>
+                                                    <td><strong>@Model.OrderItems.Sum(i => i.TotalPrice).ToString("F2") DH</strong></td>
+                                                </tr>
+                                                <tr class="bg-light">
+                                                    <td colspan="4" class="text-right"><strong>Frais de livraison:</strong></td>
+                                                    <td><strong>@((Model.TotalAmount - Model.OrderItems.Sum(i => i.TotalPrice)).ToString("F2")) DH</strong></td>
+                                                </tr>
+                                                <tr class="bg-success text-white">
+                                                    <td colspan="4" class="text-right"><strong>TOTAL:</strong></td>
+                                                    <td><strong>@Model.TotalAmount.ToString("F2") DH</strong></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="card card-outline card-warning">
+                                <div class="card-header">
+                                    <h3 class="card-title">Actions Disponibles</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="btn-group" role="group">
+                                        @switch (Model.Status)
+                                        {
+                                            case test7.Models.OrderStatus.Pending:
+                                                <button type="button" class="btn btn-success"
+                                                        onclick="confirmerAction('confirmer', @Model.Id, '@Model.OrderNumber', 'Confirmer le paiement de la commande @Model.OrderNumber ?')">
+                                                    <i class="fas fa-check"></i> Confirmer le Paiement
+                                                </button>
+                                                <button type="button" class="btn btn-danger"
+                                                        onclick="confirmerAction('annuler', @Model.Id, '@Model.OrderNumber', 'Annuler la commande @Model.OrderNumber ?')">
+                                                    <i class="fas fa-times"></i> Annuler la Commande
+                                                </button>
+                                                break;
+
+                                            case test7.Models.OrderStatus.Paid:
+                                                <button type="button" class="btn btn-primary"
+                                                        onclick="confirmerAction('valider', @Model.Id, '@Model.OrderNumber', 'Valider la commande @Model.OrderNumber ?')">
+                                                    <i class="fas fa-check-double"></i> Valider la Commande
+                                                </button>
+                                                <button type="button" class="btn btn-danger"
+                                                        onclick="confirmerAction('annuler', @Model.Id, '@Model.OrderNumber', 'Annuler la commande @Model.OrderNumber ?')">
+                                                    <i class="fas fa-times"></i> Annuler la Commande
+                                                </button>
+                                                break;
+
+                                            case test7.Models.OrderStatus.Validated:
+                                                <button type="button" class="btn btn-info"
+                                                        onclick="confirmerAction('expedier', @Model.Id, '@Model.OrderNumber', 'Marquer la commande @Model.OrderNumber comme expédiée ?')">
+                                                    <i class="fas fa-shipping-fast"></i> Marquer comme Expédiée
+                                                </button>
+                                                <button type="button" class="btn btn-danger"
+                                                        onclick="confirmerAction('annuler', @Model.Id, '@Model.OrderNumber', 'Annuler la commande @Model.OrderNumber ?')">
+                                                    <i class="fas fa-times"></i> Annuler la Commande
+                                                </button>
+                                                break;
+
+                                            case test7.Models.OrderStatus.Shipped:
+                                                <div class="alert alert-success mb-0">
+                                                    <i class="fas fa-truck"></i> Cette commande a été expédiée
+                                                </div>
+                                                break;
+
+                                            case test7.Models.OrderStatus.Delivered:
+                                                <div class="alert alert-dark mb-0">
+                                                    <i class="fas fa-check-circle"></i> Cette commande a été livrée
+                                                </div>
+                                                break;
+
+                                            case test7.Models.OrderStatus.Cancelled:
+                                                <div class="alert alert-danger mb-0">
+                                                    <i class="fas fa-ban"></i> Cette commande a été annulée
+                                                </div>
+                                                break;
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmation -->
+<div class="modal fade" id="confirmModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmation</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage"></p>
+                <div id="motifSection" style="display: none;">
+                    <label for="motifAnnulation">Motif d'annulation :</label>
+                    <textarea id="motifAnnulation" class="form-control" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" id="confirmButton">Confirmer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function confirmerAction(action, id, orderNumber, message) {
+        document.getElementById('confirmMessage').innerText = message;
+
+        if (action === 'annuler') {
+            document.getElementById('motifSection').style.display = 'block';
+        } else {
+            document.getElementById('motifSection').style.display = 'none';
+        }
+
+        document.getElementById('confirmButton').onclick = function() {
+            executeAction(action, id);
+        };
+
+        $('#confirmModal').modal('show');
+    }
+
+    function executeAction(action, id) {
+        let formData = new FormData();
+        formData.append('id', id);
+
+        if (action === 'annuler') {
+            const motif = document.getElementById('motifAnnulation').value;
+            formData.append('motif', motif);
+        }
+
+        let actionUrl = '';
+        switch(action) {
+            case 'confirmer':
+                actionUrl = '/Dashboard/ConfirmerPaiement';
+                break;
+            case 'valider':
+                actionUrl = '/Dashboard/ValiderCommande';
+                break;
+            case 'expedier':
+                actionUrl = '/Dashboard/MarquerExpediee';
+                break;
+            case 'annuler':
+                actionUrl = '/Dashboard/AnnulerCommande';
+                break;
+        }
+
+        fetch(actionUrl, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Erreur lors de l\'exécution de l\'action');
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            alert('Erreur lors de l\'exécution de l\'action');
+        });
+
+        $('#confirmModal').modal('hide');
+    }
+</script>
+
+@Html.AntiForgeryToken()

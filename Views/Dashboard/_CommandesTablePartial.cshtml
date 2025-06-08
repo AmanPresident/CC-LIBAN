@@ -1,0 +1,181 @@
+﻿@model IEnumerable<test7.Models.Order>
+
+<div class="table-responsive">
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>N° Commande</th>
+                <th>Client</th>
+                <th>Date</th>
+                <th>Montant</th>
+                <th>Statut</th>
+                <th>Adresse de livraison</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                @foreach (var commande in Model)
+                {
+                    <tr>
+                        <td>
+                            <strong>@commande.OrderNumber</strong>
+                        </td>
+                        <td>
+                            @if (commande.User != null)
+                            {
+                                <div>
+                                    <strong>@(!string.IsNullOrEmpty(commande.User.FullName) ? commande.User.FullName : commande.User.Username)</strong>
+                                </div>
+                                <small class="text-muted">@commande.User.Email</small>
+                            }
+                        </td>
+                        <td>
+                            <div>@commande.OrderDate.ToString("dd/MM/yyyy")</div>
+                            <small class="text-muted">@commande.OrderDate.ToString("HH:mm")</small>
+                        </td>
+                        <td>
+                            <strong>@commande.TotalAmount.ToString("F2") DH</strong>
+                        </td>
+                        <td>
+                            @switch (commande.Status)
+                            {
+                                case test7.Models.OrderStatus.Pending:
+                                    <span class="badge badge-warning">En attente</span>
+                                    break;
+                                case test7.Models.OrderStatus.Paid:
+                                    <span class="badge badge-info">Payé</span>
+                                    break;
+                                case test7.Models.OrderStatus.Validated:
+                                    <span class="badge badge-primary">Validé</span>
+                                    break;
+                                case test7.Models.OrderStatus.Shipped:
+                                    <span class="badge badge-success">Expédié</span>
+                                    break;
+                                case test7.Models.OrderStatus.Delivered:
+                                    <span class="badge badge-dark">Livré</span>
+                                    break;
+                                case test7.Models.OrderStatus.Cancelled:
+                                    <span class="badge badge-danger">Annulé</span>
+                                    break;
+                            }
+
+                            @if (commande.PaymentDate.HasValue)
+                            {
+                                <div><small class="text-muted">Payé le: @commande.PaymentDate.Value.ToString("dd/MM/yyyy HH:mm")</small></div>
+                            }
+                            @if (commande.ValidationDate.HasValue)
+                            {
+                                <div><small class="text-muted">Validé le: @commande.ValidationDate.Value.ToString("dd/MM/yyyy HH:mm")</small></div>
+                            }
+                        </td>
+                        <td>
+                            <div class="text-truncate" style="max-width: 200px;" title="@commande.ShippingAddress">
+                                @commande.ShippingAddress
+                            </div>
+                            @if (!string.IsNullOrEmpty(commande.PhoneNumber))
+                            {
+                                <small class="text-muted">📞 @commande.PhoneNumber</small>
+                            }
+                        </td>
+                        <td>
+                            <div class="btn-group-vertical btn-group-sm" role="group">
+                                <!-- Bouton Détails -->
+                                <a href="@Url.Action("DetailsCommande", new { id = commande.Id })"
+                                   class="btn btn-outline-info btn-sm">
+                                    <i class="fas fa-eye"></i> Détails
+                                </a>
+
+                                <!-- Actions selon le statut -->
+                                @switch (commande.Status)
+                                {
+                                    case test7.Models.OrderStatus.Pending:
+                                        <button type="button" class="btn btn-success btn-sm"
+                                                onclick="confirmerAction('confirmer', @commande.Id, '@commande.OrderNumber', 'Confirmer le paiement de la commande @commande.OrderNumber ?')">
+                                            <i class="fas fa-check"></i> Confirmer paiement
+                                        </button>
+                                        <button type="button" class="btn btn-danger btn-sm"
+                                                onclick="confirmerAction('annuler', @commande.Id, '@commande.OrderNumber', 'Annuler la commande @commande.OrderNumber ?')">
+                                            <i class="fas fa-times"></i> Annuler
+                                        </button>
+                                        break;
+
+                                    case test7.Models.OrderStatus.Paid:
+                                        <button type="button" class="btn btn-primary btn-sm"
+                                                onclick="confirmerAction('valider', @commande.Id, '@commande.OrderNumber', 'Valider la commande @commande.OrderNumber ?')">
+                                            <i class="fas fa-check-double"></i> Valider
+                                        </button>
+                                        <button type="button" class="btn btn-danger btn-sm"
+                                                onclick="confirmerAction('annuler', @commande.Id, '@commande.OrderNumber', 'Annuler la commande @commande.OrderNumber ?')">
+                                            <i class="fas fa-times"></i> Annuler
+                                        </button>
+                                        break;
+
+                                    case test7.Models.OrderStatus.Validated:
+                                        <button type="button" class="btn btn-info btn-sm"
+                                                onclick="confirmerAction('expedier', @commande.Id, '@commande.OrderNumber', 'Marquer la commande @commande.OrderNumber comme expédiée ?')">
+                                            <i class="fas fa-shipping-fast"></i> Expédier
+                                        </button>
+                                        <button type="button" class="btn btn-danger btn-sm"
+                                                onclick="confirmerAction('annuler', @commande.Id, '@commande.OrderNumber', 'Annuler la commande @commande.OrderNumber ?')">
+                                            <i class="fas fa-times"></i> Annuler
+                                        </button>
+                                        break;
+
+                                    case test7.Models.OrderStatus.Shipped:
+                                        <span class="text-muted">
+                                            <i class="fas fa-truck"></i> Expédiée
+                                        </span>
+                                        break;
+
+                                    case test7.Models.OrderStatus.Delivered:
+                                        <span class="text-success">
+                                            <i class="fas fa-check-circle"></i> Livrée
+                                        </span>
+                                        break;
+
+                                    case test7.Models.OrderStatus.Cancelled:
+                                        <span class="text-danger">
+                                            <i class="fas fa-ban"></i> Annulée
+                                        </span>
+                                        break;
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="7" class="text-center">
+                        <div class="py-4">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Aucune commande trouvée</p>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (Model != null && Model.Any())
+{
+    <div class="d-flex justify-content-between align-items-center mt-3">
+        <div>
+            <small class="text-muted">
+                Total: @Model.Count() commande(s) |
+                Montant total: @Model.Sum(c => c.TotalAmount).ToString("F2") DH
+            </small>
+        </div>
+        <div>
+            <small class="text-muted">
+                En attente: @Model.Count(c => c.Status == test7.Models.OrderStatus.Pending) |
+                Payées: @Model.Count(c => c.Status == test7.Models.OrderStatus.Paid) |
+                Validées: @Model.Count(c => c.Status == test7.Models.OrderStatus.Validated)
+            </small>
+        </div>
+    </div>
+}

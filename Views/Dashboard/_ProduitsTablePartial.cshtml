@@ -1,0 +1,66 @@
+﻿@model IEnumerable<test7.Models.Produit>
+
+<div class="table-responsive">
+    <table class="table text-start align-middle table-bordered table-hover mb-0">
+        <thead>
+            <tr class="text-dark">
+                <th scope="col">ID</th>
+                <th scope="col">Image</th>
+                <th scope="col">Nom</th>
+                <th scope="col">Prix</th>
+                <th scope="col">Categorie</th>
+                <th scope="col">Description</th>
+                <th scope="col">Type</th>
+                <th scope="col">Status</th>
+                <th scope="col">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.Id</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(item.UrlImage))
+                            {
+                                <img src="~/@item.UrlImage" alt="" style="width: 60px; height: auto;">
+                            }
+                            else
+                            {
+                                <span>Pas d'image</span>
+                            }
+                        </td>
+                        <td>@item.Name</td>
+                        <td>@item.Prix Fdj</td>
+                        <td>
+                            @if (item.Categorie == null)
+                            {
+                                <span>Pas de categorie</span>
+                            }
+                            else
+                            {
+                                <span>@item.Categorie.Name</span>
+                            }
+                        </td>
+                        <td>@(item.Description?.Length > 50 ? item.Description.Substring(0, 50) + "..." : item.Description)</td>
+                        <td>@item.Type</td>
+                        <td><span class="badge bg-success">EN STOCK</span></td>
+                        <td>
+                            <a class="btn btn-sm btn-primary" asp-controller="Dashboard" asp-action="DetailsProduit" asp-route-id="@item.Id">
+                                <i class="fas fa-eye"></i> Détails
+                            </a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="9" class="text-center">Aucun produit trouvé</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

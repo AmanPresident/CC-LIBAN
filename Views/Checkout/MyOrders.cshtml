@@ -1,0 +1,389 @@
+﻿<!-- Views/Checkout/MyOrders.cshtml -->
+@model IEnumerable<test7.Models.Order>
+@{
+    ViewData["Title"] = "Mes commandes";
+}
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <title>Mes commandes - CC-LIBAN</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" />
+
+    <style>
+        .orders-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .orders-table {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .table th {
+            background: #f8f9fa;
+            border: none;
+            font-weight: 600;
+            color: #495057;
+            padding: 15px;
+        }
+
+        .table td {
+            border: none;
+            padding: 15px;
+            vertical-align: middle;
+        }
+
+        .table tbody tr {
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+        }
+
+            .table tbody tr:hover {
+                background-color: #f8f9fa;
+            }
+
+        .order-number {
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .status-paid {
+            background: #fff3cd;
+            color: #0c5460;
+            border: 1px solid #ffeaa7;
+        }
+
+        .status-confirmed {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .status-shipped {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-delivered {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .status-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 0.85em;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+            .empty-state i {
+                font-size: 4em;
+                margin-bottom: 20px;
+                color: #dee2e6;
+            }
+
+        .order-items-preview {
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .product-count {
+            background: #e9ecef;
+            color: #495057;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin-left: 5px;
+        }
+
+        
+
+        
+    </style>
+</head>
+<body>
+    <div class="orders-container">
+        <!-- En-tête -->
+        <div class="page-header">
+            <h2><i class="fas fa-list-alt"></i> Mes commandes</h2>
+            <p class="mb-0">Consultez l'historique de vos commandes</p>
+        </div>
+
+        <!-- Messages -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle"></i> @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <!-- Tableau des commandes -->
+        @if (Model != null && Model.Any())
+        {
+            <div class="orders-table">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Numéro de commande</th>
+                                <th>Date</th>
+                                <th>Produits</th>
+                                <th>Statut</th>
+                                <th>Montant total</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <span class="order-number">@order.OrderNumber</span>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>@order.OrderDate.ToString("dd/MM/yyyy")</strong>
+                                        </div>
+                                        <small class="text-muted">@order.OrderDate.ToString("HH:mm")</small>
+                                    </td>
+                                    <td>
+                                        <div class="order-items-preview">
+                                            @if (order.OrderItems.Any())
+                                            {
+                                                var firstProducts = order.OrderItems.Take(2);
+                                                var productNames = string.Join(", ", firstProducts.Select(oi => oi.Product.Name));
+                                                @productNames
+                                                @if (order.OrderItems.Count() > 2)
+                                                {
+                                                    <span>...</span>
+                                                }
+                                                <span class="product-count">@order.OrderItems.Count() produit@(order.OrderItems.Count() > 1 ? "s" : "")</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Aucun produit</span>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @{
+                                            string statusClass = order.Status switch
+                                            {
+                                                test7.Models.OrderStatus.Pending => "status-pending",
+                                                test7.Models.OrderStatus.Paid => "status-paid",
+                                                test7.Models.OrderStatus.Validated => "status-confirmed",
+                                                test7.Models.OrderStatus.Shipped => "status-shipped",
+                                                test7.Models.OrderStatus.Delivered => "status-delivered",
+                                                test7.Models.OrderStatus.Cancelled => "status-cancelled",
+                                                _ => "status-pending"
+                                            };
+
+                                            string statusText = order.Status switch
+                                            {
+                                                test7.Models.OrderStatus.Pending => "En attente",
+                                                test7.Models.OrderStatus.Paid => "Payer",
+                                                test7.Models.OrderStatus.Validated => "Confirmée",
+                                                test7.Models.OrderStatus.Shipped => "Expédiée",
+                                                test7.Models.OrderStatus.Delivered => "Livrée",
+                                                test7.Models.OrderStatus.Cancelled => "Annulée",
+                                                _ => "En attente"
+                                            };
+                                        }
+                                        <span class="status-badge @statusClass">@statusText</span>
+                                    </td>
+                                    <td>
+                                        <strong class="text-success">@order.TotalAmount.ToString("N0") Fdj</strong>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="@Url.Action("Confirmation", "Checkout", new { orderNumber = order.OrderNumber })"
+                                               class="btn btn-outline-primary btn-sm"
+                                               title="Voir les détails">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            @if (order.Status == test7.Models.OrderStatus.Pending)
+                                            {
+                                                <button type="button"
+                                                        class="btn btn-outline-danger btn-sm"
+                                                        title="Annuler la commande"
+                                                        onclick="confirmCancel('@order.OrderNumber')">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Statistiques -->
+            <div class="row mt-4">
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary">@Model.Count()</h5>
+                            <p class="card-text">Total commandes</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-warning">@Model.Count(o => o.Status == test7.Models.OrderStatus.Pending)</h5>
+                            <p class="card-text">En attente</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-success">@Model.Count(o => o.Status == test7.Models.OrderStatus.Delivered)</h5>
+                            <p class="card-text">Livrées</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-success">@Model.Sum(o => o.TotalAmount).ToString("N0") Fdj</h5>
+                            <p class="card-text">Total dépensé</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- État vide -->
+            <div class="orders-table">
+                <div class="empty-state">
+                    <i class="fas fa-shopping-cart"></i>
+                    <h4>Aucune commande trouvée</h4>
+                    <p>Vous n'avez encore passé aucune commande.</p>
+                    <a href="@Url.Action("Index", "Products")" class="btn btn-primary">
+                        <i class="fas fa-shopping-bag"></i> Commencer mes achats
+                    </a>
+                </div>
+            </div>
+        }
+
+        <!-- Actions -->
+        <div class="text-center mt-4">
+            <a href="@Url.Action("Index", "Home")" class="btn btn-outline-primary">
+                <i class="fas fa-home"></i> Retour à l'accueil
+            </a>
+            <a href="@Url.Action("Index", "Products")" class="btn btn-success">
+                <i class="fas fa-shopping-bag"></i> Continuer mes achats
+            </a>
+        </div>
+    </div>
+
+    <!-- Modal de confirmation d'annulation -->
+    <div class="modal fade" id="cancelModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmer l'annulation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    Êtes-vous sûr de vouloir annuler cette commande ?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Non</button>
+                    <button type="button" class="btn btn-danger" id="confirmCancelBtn">Oui, annuler</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        let orderNumberToCancel = '';
+
+        function confirmCancel(orderNumber) {
+            orderNumberToCancel = orderNumber;
+            const modal = new bootstrap.Modal(document.getElementById('cancelModal'));
+            modal.show();
+        }
+
+        document.getElementById('confirmCancelBtn').addEventListener('click', function() {
+            if (orderNumberToCancel) {
+                // Ici vous pouvez ajouter l'appel AJAX pour annuler la commande
+                // ou rediriger vers une action du contrôleur
+                window.location.href = '@Url.Action("CancelOrder", "Checkout")?orderNumber=' + orderNumberToCancel;
+            }
+        });
+
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    </script>
+</body>
+</html>
